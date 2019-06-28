@@ -19,7 +19,7 @@ public:
 
         Node() : key(ValueType()), h(0) {}
         Node(const ValueType& _key)
-            : key(_key), h(1) {}
+                : key(_key), h(1) {}
         Node(const ValueType& _key, int _h) : key(_key), h(_h) {}
     };
 
@@ -191,9 +191,9 @@ public:
             return *this;
         }
         const iterator operator--(int) {
-            iterator __node = (*this);
+            iterator node_ = (*this);
             _node = getPrevNode(root, _node);
-            return __node;
+            return node_;
         }
 
         iterator operator++() {
@@ -201,9 +201,9 @@ public:
             return *this;
         }
         const iterator operator++(int) {
-            iterator __node = *this;
+            iterator node_ = *this;
             _node = getNextNode(_node);
-            return __node;
+            return node_;
         }
 
         ValueType& operator*() {
@@ -219,7 +219,19 @@ public:
     template<class InputIter>
     Set(InputIter _begin, InputIter _end) : Set() {
         while(_begin != _end) {
-            insert(*_begin);
+            try{
+                insert(*_begin);
+            } catch(...) {
+                while (true) {
+                    if (root == nullptr) {
+                        break;
+                    }
+                    erase(root->key);
+                }
+                sz = 0;
+                root = nullptr;
+                throw;
+            }
             ++_begin;
         }
     }
@@ -227,6 +239,19 @@ public:
     Set(const initializer_list<ValueType>& lst) : Set() {
         sz = 0;
         for (auto x : lst) {
+            try{
+                insert(x);
+            } catch(...) {
+                while (true) {
+                    if (root == nullptr) {
+                        break;
+                    }
+                    erase(root->key);
+                }
+                sz = 0;
+                root = nullptr;
+                throw;
+            }
             insert(x);
         }
     }
@@ -298,7 +323,13 @@ public:
                 return update(_node);
             }
         }
-        return new Node(x);
+        try {
+            _node = new Node(x);
+        }
+        catch(...) {
+            throw;
+        }
+        return _node;
     }
 
     void insert(const ValueType& x) {
@@ -308,14 +339,16 @@ public:
             sz++;
         }
     }
-
-    Node* __erase(Node* _node) {
+private:
+    Node* erase_(Node* _node) {
         if (_node->L) {
-            _node->L = __erase(_node->L);
+            _node->L = erase_(_node->L);
             return update(_node);
         }
         return _node->R;
     }
+
+public:    
     Node* _erase(Node* _node, const ValueType& _key) {
         if (!_node) return _node;
         if (_key < _node->key) _node->L = _erase(_node->L, _key);
@@ -327,7 +360,7 @@ public:
             delete _node;
             if (right_son) {
                 Node* _min = getMin(right_son);
-                _min->R = __erase(right_son);
+                _min->R = erase_(right_son);
                 _min->L = left_son;
                 return update(_min);
             }
@@ -352,11 +385,11 @@ public:
                 return _lower_bound(_node->R, key);
             }
             else if (key < _node->key) {
-                Node* __node = _lower_bound(_node->L, key);
-                if (!__node) {
+                Node* node_ = _lower_bound(_node->L, key);
+                if (!node_) {
                     return _node;
                 }
-                return __node;
+                return node_;
             }
         }
         return _node;
@@ -379,4 +412,3 @@ public:
         return iterator(_lower_bound(root, elem), root);
     }
 };
-
