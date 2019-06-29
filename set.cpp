@@ -222,41 +222,16 @@ public:
             try{
                 insert(*_begin);
             } catch(...) {
-                while (true) {
-                    if (root == nullptr) {
-                        break;
-                    }
-                    erase(root->key);
-                }
-                sz = 0;
-                root = nullptr;
+                clear();
                 throw;
             }
             ++_begin;
         }
     }
 
-    Set(const initializer_list<ValueType>& lst) : Set() {
-        sz = 0;
-        for (auto x : lst) {
-            try{
-                insert(x);
-            } catch(...) {
-                while (true) {
-                    if (root == nullptr) {
-                        break;
-                    }
-                    erase(root->key);
-                }
-                sz = 0;
-                root = nullptr;
-                throw;
-            }
-            insert(x);
-        }
-    }
+    Set(const initializer_list<ValueType>& lst) : Set(lst.begin(), lst.end()) {}
 
-    ~Set() {
+    void clear() {
         while (true) {
             if (root == nullptr) {
                 break;
@@ -267,26 +242,17 @@ public:
         root = nullptr;
     }
 
-    Set(const Set &_set) : sz(0), root(nullptr) {
-        auto it = _set.begin();
-        while (it != _set.end()) {
-            insert(*it);
-            ++it;
-        }
+    ~Set() {
+      clear();
     }
+
+    Set(const Set &_set) : Set(_set.begin(), _set.end()) {}
 
     Set& operator=(const Set& _node) {
         if (root == _node.root) {
             return *this;
         }
-        while (true) {
-            if (root == nullptr) {
-                break;
-            }
-            erase(root->key);
-        }
-        sz = 0;
-        root = nullptr;
+        clear();
         for (const auto& i : _node) {
             insert(i);
         }
@@ -323,12 +289,7 @@ public:
                 return update(_node);
             }
         }
-        try {
-            _node = new Node(x);
-        }
-        catch(...) {
-            throw;
-        }
+        _node = new Node(x);
         return _node;
     }
 
